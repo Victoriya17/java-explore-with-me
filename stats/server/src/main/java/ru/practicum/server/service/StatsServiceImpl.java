@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
-import ru.practicum.server.exceptions.BadRequestException;
 import ru.practicum.server.mapper.EndpointHitMapper;
 import ru.practicum.server.mapper.ViewStatsMapper;
 import ru.practicum.server.repository.StatsRepository;
@@ -36,10 +35,6 @@ public class StatsServiceImpl implements StatsService {
     @Override
     @Transactional(readOnly = true)
     public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
-        if (start.isAfter(end)) {
-            throw new BadRequestException("Дата начала периода выдачи статистики позже даты окончания!");
-        }
-
         if (uris == null || uris.isEmpty()) {
             if (unique) {
                 log.info("Получение статистики обращений без списка uri с {} по {}", start, end);

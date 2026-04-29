@@ -1,12 +1,12 @@
 package ru.practicum.server.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
+import ru.practicum.server.exceptions.BadRequestException;
 import ru.practicum.server.service.StatsService;
 
 import java.time.LocalDateTime;
@@ -19,7 +19,7 @@ public class StatsController {
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
-    public EndpointHitDto addHit(@RequestBody @Valid EndpointHitDto hitDto) {
+    public EndpointHitDto addHit(@RequestBody EndpointHitDto hitDto) {
         return statsService.addHit(hitDto);
     }
 
@@ -30,6 +30,9 @@ public class StatsController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
             @RequestParam(required = false) List<String> uris,
             @RequestParam(required = false, defaultValue = "false") Boolean unique) {
+        if (start.isAfter(end)) {
+            throw new BadRequestException("Дата начала периода выдачи статистики позже даты окончания!");
+        }
         return statsService.getStats(start, end, uris, unique);
     }
 }

@@ -2,11 +2,9 @@ package ru.practicum.ewm.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.DuplicatedDataException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.user.dto.NewUserRequest;
@@ -34,7 +32,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         if (ids == null || ids.isEmpty()) {
             users = userRepository.findAll(pageRequest).getContent();
         } else {
-           users = userRepository.findByIdIn(ids, pageRequest);
+            users = userRepository.findByIdIn(ids, pageRequest);
         }
 
         log.info("Найдено {} пользователей для администратора", users.size());
@@ -54,11 +52,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                     throw new DuplicatedDataException("Эта почта уже используется.");
                 });
 
-        try {
-            newUser = userRepository.save(newUser);
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictException("Такой пользователь уже существует");
-        }
+        newUser = userRepository.save(newUser);
+
         log.info("Сохранение данных о пользователе {}", request.getName());
         return UserMapper.mapToUserDto(newUser);
     }

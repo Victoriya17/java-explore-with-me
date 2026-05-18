@@ -2,7 +2,8 @@ package ru.practicum.ewm.compilation.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.compilation.dto.CompilationDto;
@@ -13,18 +14,16 @@ import ru.practicum.ewm.compilation.model.Compilation;
 import ru.practicum.ewm.compilation.repository.CompilationRepository;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.exception.BadRequestException;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class AdminCompilationServiceImpl implements AdminCompilationService {
+public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
 
@@ -32,9 +31,6 @@ public class AdminCompilationServiceImpl implements AdminCompilationService {
     @Transactional
     public CompilationDto createCompilation(NewCompilationDto request) {
         log.debug("Создание записи о новой подборке событии {}", request.getTitle());
-        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
-            throw new BadRequestException("Имя подборки не может быть пустым.");
-        }
 
         if (request.getPinned() == null) {
             request.setPinned(false);
@@ -42,11 +38,7 @@ public class AdminCompilationServiceImpl implements AdminCompilationService {
 
         Compilation compilation = CompilationMapper.mapToCompilation(request, findEvents(request.getEvents()));
 
-        try {
-            compilation = compilationRepository.save(compilation);
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictException("Подборка с таким заголовком уже существует");
-        }
+        compilation = compilationRepository.save(compilation);
 
         log.info("Сохранение данных о подборке {}", request.getTitle());
         return CompilationMapper.mapToCompilationDto(compilation);
@@ -74,14 +66,44 @@ public class AdminCompilationServiceImpl implements AdminCompilationService {
 
         CompilationMapper.updateFields(existingCompilation, request, events);
 
-        try {
-            existingCompilation = compilationRepository.save(existingCompilation);
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictException("Подборка с таким именем уже существует");
-        }
+        existingCompilation = compilationRepository.save(existingCompilation);
 
         log.info("Подборка с ID {} успешно обновлена", compId);
         return CompilationMapper.mapToCompilationDto(existingCompilation);
+    }
+
+    @Override
+    public Collection<CompilationDto> getCompilations(Integer from, Integer size) {
+        log.debug("Получение списка подборок: from={}, size={}", from, size);
+
+        PageRequest pageRequest = PageRequest.of(from / size, size);
+
+        return compilationRepository.findAll(pageRequest).getContent().stream()
+                .map(CompilationMapper::mapToCompilationDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<CompilationDto> getCompilationsByPinned(Boolean pinned, Integer from, Integer size) {
+        PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
+
+        List<Compilation> compilations;
+        if (pinned != null) {
+            compilations = compilationRepository.findAllByPinned(pinned, pageRequest);
+        } else {
+            compilations = compilationRepository.findAll(pageRequest).toList();
+        }
+
+        return CompilationMapper.mapToListDto(compilations);
+    }
+
+    @Override
+    public CompilationDto findCompilationById(Long id) {
+        log.debug("Получение подборки c ID {}", id);
+        Compilation compilation = compilationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Подборка с ID " + id + " не найдена"));
+
+        return CompilationMapper.mapToCompilationDto(compilation);
     }
 
     public Compilation findCompilation(Long compId) {

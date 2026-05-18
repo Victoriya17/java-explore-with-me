@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.*;
+import ru.practicum.ewm.event.service.EventService;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.ewm.event.service.PrivateEventService;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 
@@ -18,7 +18,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping(path = "/users/{userId}/events")
 public class PrivateEventController {
-    private final PrivateEventService privateEventService;
+    private final EventService privateEventService;
 
     @GetMapping
     public Collection<EventShortDto> findAllEvents(@PathVariable("userId") @Positive Long userId,

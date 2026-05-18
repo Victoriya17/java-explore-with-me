@@ -2,7 +2,6 @@ package ru.practicum.ewm.request.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.event.enums.State;
@@ -56,11 +55,7 @@ public class RequestServiceImpl implements RequestService {
         }
 
         Request request = RequestMapper.mapToRequest(event, user);
-        try {
-            request = requestRepository.save(request);
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictException("Запрос уже существует");
-        }
+        request = requestRepository.save(request);
 
         log.info("Сохраняем данные о запросе с ID {} на событие {} созданном пользователем {}",
                 request.getId(), event.getTitle(), user.getName());
@@ -89,10 +84,10 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
-       Request request = requestRepository.findByIdAndRequesterId(requestId, userId)
+        Request request = requestRepository.findByIdAndRequesterId(requestId, userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Запрос с ID " + requestId + " пользователя " +
                         "c ID " + userId + " не найден")));
-       Event event = findEventWithLockById(request.getEvent().getId());
+        Event event = findEventWithLockById(request.getEvent().getId());
 
         if (request.getStatus() == ParticipationRequestStatus.CONFIRMED) {
             event.setConfirmedRequests(event.getConfirmedRequests() - 1);

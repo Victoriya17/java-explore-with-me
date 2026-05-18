@@ -7,13 +7,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.category.dto.NewCategoryDto;
-import ru.practicum.ewm.category.service.AdminCategoryService;
+import ru.practicum.ewm.category.service.CategoryService;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/admin/categories")
 public class AdminCategoryController {
-    private final AdminCategoryService categoryService;
+    private final CategoryService categoryService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

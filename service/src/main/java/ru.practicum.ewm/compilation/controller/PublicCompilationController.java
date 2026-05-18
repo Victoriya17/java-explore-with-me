@@ -5,7 +5,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.compilation.dto.CompilationDto;
-import ru.practicum.ewm.compilation.service.PublicCompilationService;
+import ru.practicum.ewm.compilation.service.CompilationService;
 
 import java.util.Collection;
 
@@ -13,7 +13,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping(path = "/compilations")
 public class PublicCompilationController {
-    private final PublicCompilationService compilationService;
+    private final CompilationService compilationService;
 
     @GetMapping
     public Collection<CompilationDto> findAllCompilations(@RequestParam(required = false) Boolean pinned,

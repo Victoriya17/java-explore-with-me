@@ -5,7 +5,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.category.dto.CategoryDto;
-import ru.practicum.ewm.category.service.PublicCategoryService;
+import ru.practicum.ewm.category.service.CategoryService;
 
 import java.util.Collection;
 
@@ -13,7 +13,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping(path = "/categories")
 public class PublicCategoryController {
-    private final PublicCategoryService categoryService;
+    private final CategoryService categoryService;
 
     @GetMapping
     public Collection<CategoryDto> findAllCategories(

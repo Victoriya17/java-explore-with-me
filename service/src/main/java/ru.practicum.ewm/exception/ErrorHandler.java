@@ -2,6 +2,7 @@ package ru.practicum.ewm.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -19,10 +20,10 @@ public class ErrorHandler {
     @ExceptionHandler({ConflictException.class, DuplicatedDataException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleConflictException(final RuntimeException e) {
-        log.error("Conflict: {}", e.getMessage());
+        log.error("Конфликт: {}", e.getMessage());
         return ApiError.builder()
                 .status(HttpStatus.CONFLICT.name())
-                .reason("For the requested operation the conditions are not met.")
+                .reason("Для запрашиваемой операции условия не выполнены.")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .errors(Collections.emptyList())
@@ -32,10 +33,10 @@ public class ErrorHandler {
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundException(final NotFoundException e) {
-        log.error("Object not found: {}", e.getMessage());
+        log.error("Объект не найден: {}", e.getMessage());
         return ApiError.builder()
                 .status(HttpStatus.NOT_FOUND.name())
-                .reason("The required object was not found.")
+                .reason("Требуемый объект не был найден.")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .errors(Collections.emptyList())
@@ -47,10 +48,10 @@ public class ErrorHandler {
             HandlerMethodValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleValidationException(final Exception e) {
-        log.error("Validation error: {}", e.getMessage());
+        log.error("Ошибка валидации: {}", e.getMessage());
         return ApiError.builder()
                 .status(HttpStatus.BAD_REQUEST.name())
-                .reason("Incorrectly made request.")
+                .reason("Запрос составлен некорректно.")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .errors(Collections.emptyList())
@@ -60,11 +61,27 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleThrowable(final Throwable e) {
-        log.error("Internal server error", e);
+        log.error("Внутренняя ошибка сервера.", e);
         return ApiError.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.name())
-                .reason("Error occurred")
+                .reason("Произошла ошибка.")
                 .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .errors(Collections.emptyList())
+                .build();
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDataIntegrityException(final DataIntegrityViolationException e) {
+        String rootMessage = e.getRootCause() != null ? e.getRootCause().getMessage() : e.getMessage();
+
+        log.error("Конфликт данных БД: {}", rootMessage);
+
+        return ApiError.builder()
+                .status(HttpStatus.CONFLICT.name())
+                .reason("Конфликт данных.")
+                .message(rootMessage)
                 .timestamp(LocalDateTime.now())
                 .errors(Collections.emptyList())
                 .build();

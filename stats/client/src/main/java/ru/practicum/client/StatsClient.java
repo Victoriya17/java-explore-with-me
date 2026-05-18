@@ -1,5 +1,6 @@
 package ru.practicum.client;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -15,14 +16,19 @@ import java.util.List;
 
 @Service
 public class StatsClient extends BaseClient {
+    private final String appName;
+
     @Autowired
-    public StatsClient(@Value("${stats.url:http://stats-server:9090}") String serverUrl, RestTemplateBuilder builder) {
+    public StatsClient(@Value("${stats.url:http://stats-server:9090}") String serverUrl,
+                       @Value("${spring.application.name:ewm-main-service}") String appName,
+                       RestTemplateBuilder builder) {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                         .requestFactory(org.springframework.http.client.SimpleClientHttpRequestFactory::new)
                         .build()
         );
+        this.appName = appName;
     }
 
     public ResponseEntity<Object> get(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
@@ -42,7 +48,14 @@ public class StatsClient extends BaseClient {
         return get(uriBuilder.build().toUriString(), null);
     }
 
-    public ResponseEntity<Object> save(EndpointHitDto requestDto) {
-        return post("/hit", null, requestDto);
+    public ResponseEntity<Object> save(HttpServletRequest request) {
+        EndpointHitDto hitDto = new EndpointHitDto(
+                null,
+                appName,
+                request.getRequestURI(),
+                request.getRemoteAddr(),
+                LocalDateTime.now()
+        );
+        return post("/hit", null, hitDto);
     }
 }

@@ -9,8 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
-import ru.practicum.ewm.event.service.PublicEventService;
-import ru.practicum.ewm.exception.BadRequestException;
+import ru.practicum.ewm.event.service.EventService;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -20,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/events")
 public class PublicEventController {
-    private final PublicEventService eventService;
+    private final EventService eventService;
 
     @GetMapping
     public Collection<EventShortDto> findAllPublicEvents(
@@ -37,9 +36,6 @@ public class PublicEventController {
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size,
             HttpServletRequest request) {
 
-        if (rangeStart == null && rangeEnd != null) {
-            throw new BadRequestException("Если указан параметр „end“, необходимо также указать параметр „start“");
-        }
         return eventService.findPublicEvents(
                 text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size, request);
     }

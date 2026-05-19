@@ -1,7 +1,6 @@
 package ru.practicum.server.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.EndpointHitDto;
@@ -10,6 +9,7 @@ import ru.practicum.server.exceptions.BadRequestException;
 import ru.practicum.server.service.StatsService;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -25,14 +25,18 @@ public class StatsController {
 
     @GetMapping("/stats")
     @ResponseStatus(HttpStatus.OK)
-    public List<ViewStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-            LocalDateTime start,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
-            @RequestParam(required = false) List<String> uris,
-            @RequestParam(required = false, defaultValue = "false") Boolean unique) {
-        if (start.isAfter(end)) {
+    public List<ViewStatsDto> getStats(@RequestParam String start, @RequestParam String end,
+                                       @RequestParam(required = false) List<String> uris,
+                                       @RequestParam(required = false, defaultValue = "false") Boolean unique) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        LocalDateTime startData = LocalDateTime.parse(start, formatter);
+        LocalDateTime endData = LocalDateTime.parse(end, formatter);
+
+        if (startData.isAfter(endData)) {
             throw new BadRequestException("Дата начала периода выдачи статистики позже даты окончания!");
         }
-        return statsService.getStats(start, end, uris, unique);
+
+        return statsService.getStats(startData, endData, uris, unique);
     }
 }

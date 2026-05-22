@@ -18,45 +18,45 @@ import java.util.Collection;
 @RestController
 @RequestMapping(path = "/users/{userId}/events")
 public class PrivateEventController {
-    private final EventService privateEventService;
+    private final EventService eventService;
 
     @GetMapping
     public Collection<EventShortDto> findAllEvents(@PathVariable("userId") @Positive Long userId,
                                                    @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
                                                    @Positive @RequestParam(defaultValue = "10") Integer size) {
-        return privateEventService.getEvents(userId, from, size);
+        return eventService.getEvents(userId, from, size);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto createEvent(@PathVariable("userId") @Positive Long userId,
                                @Valid @RequestBody NewEventDto request) {
-        return privateEventService.createEvent(userId, request);
+        return eventService.createEvent(userId, request);
     }
 
     @GetMapping("/{eventId}")
     public EventFullDto findUserEvent(@PathVariable("userId") @Positive Long userId,
                                       @PathVariable("eventId") @Positive Long eventId) {
-        return privateEventService.findEvent(userId, eventId);
+        return eventService.findEvent(userId, eventId);
     }
 
     @PatchMapping("/{eventId}")
     public EventFullDto updateEvent(@PathVariable("userId") @Positive Long userId,
                                     @PathVariable("eventId") @Positive Long eventId,
                                     @RequestBody @Valid UpdateEventUserRequest request) {
-        return privateEventService.updateEvent(userId, eventId, request);
+        return eventService.updateEvent(userId, eventId, request);
     }
 
     @GetMapping("/{eventId}/requests")
     public Collection<ParticipationRequestDto> findAllUserRequests(@PathVariable("userId") @Positive Long userId,
                                                                @PathVariable("eventId") @Positive Long eventId) {
-        return privateEventService.getRequests(userId, eventId);
+        return eventService.getRequests(userId, eventId);
     }
 
     @PatchMapping("/{eventId}/requests")
     public EventRequestStatusUpdateResult updateStatusEvent(@PathVariable("userId") @Positive Long userId,
                                                             @PathVariable("eventId") @Positive Long eventId,
                                                             @RequestBody EventRequestStatusUpdateRequest request) {
-        return privateEventService.updateStatusEvent(userId, eventId, request);
+        return eventService.updateStatusEvent(userId, eventId, request);
     }
 }

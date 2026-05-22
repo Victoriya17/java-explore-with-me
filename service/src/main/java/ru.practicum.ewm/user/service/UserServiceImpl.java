@@ -19,12 +19,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class AdminUserServiceImpl implements AdminUserService {
+public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional(readOnly = true)
     public Collection<UserDto> getUsers(List<Long> ids, Integer from, Integer size) {
         PageRequest pageRequest = PageRequest.of(from / size, size);
         List<User> users;
@@ -67,5 +67,11 @@ public class AdminUserServiceImpl implements AdminUserService {
 
         log.debug("Удаление пользователя {}", user.getName());
         userRepository.delete(user);
+    }
+
+    @Override
+    public User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с ID " + userId + " не найден")));
     }
 }

@@ -32,8 +32,7 @@ import ru.practicum.ewm.request.enums.ParticipationRequestStatus;
 import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.model.Request;
 import ru.practicum.ewm.request.repository.RequestRepository;
-import ru.practicum.ewm.user.model.User;
-import ru.practicum.ewm.user.repository.UserRepository;
+import ru.practicum.ewm.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -48,7 +47,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RequestRepository requestRepository;
     private final StatsClient statsClient;
     private final ObjectMapper objectMapper;
@@ -80,10 +79,6 @@ public class EventServiceImpl implements EventService {
                 params.getRangeEnd(),
                 pageable
         );
-
-        if (events.isEmpty()) {
-            return Collections.emptyList();
-        }
 
         log.info("Найдено {} событий для администратора", events.size());
 
@@ -128,7 +123,7 @@ public class EventServiceImpl implements EventService {
         checkEventDate(request.getEventDate());
 
         Event event = EventMapper.mapToEvent(request, categoryService.findCategory(request.getCategory()),
-                findUserById(userId));
+                userService.findUserById(userId));
 
         event.setLocation(new Location(request.getLocation().getLat(), request.getLocation().getLon()));
 
@@ -398,9 +393,10 @@ public class EventServiceImpl implements EventService {
         return Collections.emptyMap();
     }
 
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с ID " + userId + " не найден")));
+    @Override
+    public Event findEventById(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(String.format("Событие с ID " + eventId + " не найдено")));
     }
 
     private void checkEventDate(LocalDateTime eventDate) {
@@ -414,11 +410,6 @@ public class EventServiceImpl implements EventService {
         return eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Событие с ID " + eventId + " пользователя " +
                         "c ID " + userId + " не найдено")));
-    }
-
-    private Event findEventById(Long eventId) {
-        return eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException(String.format("Событие с ID " + eventId + " не найдено")));
     }
 
     private void validateAdminUpdate(Event event, UpdateEventAdminRequest request) {

@@ -17,6 +17,7 @@ import ru.practicum.ewm.request.model.Request;
 import ru.practicum.ewm.request.repository.RequestRepository;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
+import ru.practicum.ewm.user.service.UserService;
 
 import java.util.Collection;
 
@@ -27,11 +28,12 @@ public class RequestServiceImpl implements RequestService {
     private final UserRepository userRepository;
     private final RequestRepository requestRepository;
     private final EventRepository eventRepository;
+    private final UserService userService;
 
     @Override
     @Transactional(readOnly = true)
     public Collection<ParticipationRequestDto> findAllRequests(Long userId) {
-        findUserById(userId);
+        userService.findUserById(userId);
 
         return RequestMapper.mapToListDto(requestRepository.findAllByRequesterId(userId));
     }
@@ -45,7 +47,7 @@ public class RequestServiceImpl implements RequestService {
         }
 
         Event event = findEventWithLockById(eventId);
-        User user = findUserById(userId);
+        User user = userService.findUserById(userId);
 
         validateAddRequest(event, user, eventId, userId);
 
@@ -96,11 +98,6 @@ public class RequestServiceImpl implements RequestService {
 
         request.setStatus(ParticipationRequestStatus.CANCELED);
         return RequestMapper.mapToRequestDto(requestRepository.save(request));
-    }
-
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с ID " + userId + " не найден")));
     }
 
     private Event findEventWithLockById(Long eventId) {

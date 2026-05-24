@@ -2,7 +2,6 @@ package ru.practicum.ewm.comment.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +16,6 @@ public class CommentDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
-    @Size(min = 1, max = 2000)
     private String text;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

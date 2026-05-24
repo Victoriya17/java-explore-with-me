@@ -1,8 +1,7 @@
 package ru.practicum.ewm.comment.mapper;
 
 import ru.practicum.ewm.comment.dto.CommentDto;
-import ru.practicum.ewm.comment.dto.NewCommentDto;
-import ru.practicum.ewm.comment.dto.UpdateCommentDto;
+import ru.practicum.ewm.comment.dto.CommentRequestDto;
 import ru.practicum.ewm.comment.model.Comment;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.user.model.User;
@@ -11,7 +10,7 @@ import ru.practicum.ewm.user.mapper.UserMapper;
 import java.time.LocalDateTime;
 
 public class CommentMapper {
-    public static Comment mapToComment(NewCommentDto request, Event event, User author) {
+    public static Comment mapToComment(CommentRequestDto request, Event event, User author) {
         Comment comment = new Comment();
 
         comment.setText(request.getText());
@@ -35,7 +34,7 @@ public class CommentMapper {
         return dto;
     }
 
-    public static Comment updateFields(UpdateCommentDto request, Comment comment) {
+    public static Comment updateFields(CommentRequestDto request, Comment comment) {
         if (request.getText() != null) {
             comment.setText(request.getText());
             comment.setUpdated(LocalDateTime.now());

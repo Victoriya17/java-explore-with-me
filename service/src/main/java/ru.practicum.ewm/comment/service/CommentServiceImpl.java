@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.comment.dto.AdminCommentParams;
 import ru.practicum.ewm.comment.dto.CommentDto;
-import ru.practicum.ewm.comment.dto.NewCommentDto;
-import ru.practicum.ewm.comment.dto.UpdateCommentDto;
+import ru.practicum.ewm.comment.dto.CommentRequestDto;
 import ru.practicum.ewm.comment.mapper.CommentMapper;
 import ru.practicum.ewm.comment.model.Comment;
 import ru.practicum.ewm.comment.repository.CommentRepository;
@@ -81,9 +80,14 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentDto createComment(Long userId, Long eventId, NewCommentDto request) {
+    public CommentDto createComment(Long userId, CommentRequestDto request) {
         log.debug("Создание нового комментария текущим пользователем");
-        Event event = eventService.findEventById(eventId);
+
+        if (request.getEventId() == null) {
+            throw new BadRequestException("eventId должен быть указан в теле запроса");
+        }
+
+        Event event = eventService.findEventById(request.getEventId());
 
         if (!event.getState().equals(State.PUBLISHED)) {
             throw new ConflictException("Нельзя оставить комментарий к неопубликованному событию");
@@ -99,9 +103,14 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentDto updateComment(Long userId, Long comId, UpdateCommentDto request) {
-        log.debug("Обновление комментария c ID {}", comId);
-        Comment existingComment = findComment(comId);
+    public CommentDto updateComment(Long userId, CommentRequestDto request) {
+        log.debug("Обновление комментария пользователем");
+
+        if (request.getCommentId() == null) {
+            throw new BadRequestException("commentId должен быть указан в теле запроса");
+        }
+
+        Comment existingComment = findComment(request.getCommentId());
 
         if (!existingComment.getAuthor().getId().equals(userId)) {
             throw new ConflictException("Вы не можете редактировать чужой комментарий");
@@ -112,7 +121,7 @@ public class CommentServiceImpl implements CommentService {
 
         existingComment = commentRepository.save(existingComment);
 
-        log.info("Комментарий с ID {} успешно обновлен", comId);
+        log.info("Комментарий с ID {} успешно обновлен", existingComment.getId());
         return CommentMapper.mapToCommentDto(existingComment);
     }
 

@@ -9,8 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.comment.dto.CommentDto;
-import ru.practicum.ewm.comment.dto.NewCommentDto;
-import ru.practicum.ewm.comment.dto.UpdateCommentDto;
+import ru.practicum.ewm.comment.dto.CommentRequestDto;
 import ru.practicum.ewm.comment.service.CommentService;
 
 import java.util.Collection;
@@ -26,19 +25,16 @@ public class PrivateCommentController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CommentDto createComment(@PathVariable("userId") @Positive Long userId,
-                                    @RequestParam Long eventId,
-                                    @Valid @RequestBody NewCommentDto request) {
-        log.info("Получен запрос POST /user/{}/comments на создание комментария с текстом: {}", userId, request);
-        return commentService.createComment(userId, eventId, request);
+                                    @Valid @RequestBody CommentRequestDto request) {
+        log.info("Получен POST запрос на создание комментария");
+        return commentService.createComment(userId, request);
     }
 
-    @PatchMapping("/{comId}")
+    @PatchMapping
     public CommentDto updateComment(@PathVariable("userId") @Positive Long userId,
-                                    @PathVariable("comId") @Positive Long comId,
-                                    @Valid @RequestBody UpdateCommentDto request) {
-        log.info("Получен запрос PATCH /user/{}/comments/{} на обновление комментария с текстом: {}", userId, comId,
-                request);
-        return commentService.updateComment(userId, comId, request);
+                                    @Valid @RequestBody CommentRequestDto request) {
+        log.info("Получен PATCH запрос на обновление комментария с текстом");
+        return commentService.updateComment(userId, request);
     }
 
     @DeleteMapping("/{comId}")

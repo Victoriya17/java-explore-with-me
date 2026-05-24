@@ -15,6 +15,7 @@ import ru.practicum.client.StatsClient;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.service.CategoryService;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.enums.AdminStateAction;
 import ru.practicum.ewm.event.enums.State;
@@ -52,6 +53,7 @@ public class EventServiceImpl implements EventService {
     private final StatsClient statsClient;
     private final ObjectMapper objectMapper;
     private final CategoryService categoryService;
+    private final CommentRepository commentRepository;
 
     @Override
     public Collection<EventFullDto> findAdminEvents(AdminEventParams params) {
@@ -82,7 +84,21 @@ public class EventServiceImpl implements EventService {
 
         log.info("Найдено {} событий для администратора", events.size());
 
-        return EventMapper.mapToListFullEventDto(events);
+        List<EventFullDto> resultDto = EventMapper.mapToListFullEventDto(events);
+        if (events.isEmpty()) {
+            return resultDto;
+        }
+
+        List<Long> eventIds = events.stream().map(Event::getId).collect(Collectors.toList());
+        Map<Long, Long> commentsCountMap = commentRepository.countCommentsByEventIds(eventIds)
+                .stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
+        for (EventFullDto dto : resultDto) {
+            dto.setCommentsCount(commentsCountMap.getOrDefault(dto.getId(), 0L));
+        }
+
+        return resultDto;
     }
 
     @Override
@@ -102,7 +118,10 @@ public class EventServiceImpl implements EventService {
         updatedEvent = eventRepository.save(updatedEvent);
 
         log.info("Администратор обновляет событие \"{}\"", updatedEvent.getTitle());
-        return EventMapper.mapToFullEventDto(updatedEvent);
+        EventFullDto resultDto = EventMapper.mapToFullEventDto(updatedEvent);
+        resultDto.setCommentsCount(commentRepository.countByEventId(eventId));
+
+        return resultDto;
     }
 
     @Override
@@ -113,7 +132,21 @@ public class EventServiceImpl implements EventService {
 
         log.info("Получено {} событий пользователя с ID {}", events.size(), userId);
 
-        return EventMapper.mapToListShortEventDto(events);
+        List<EventShortDto> resultDto = EventMapper.mapToListShortEventDto(events);
+        if (events.isEmpty()) {
+            return resultDto;
+        }
+
+        List<Long> eventIds = events.stream().map(Event::getId).collect(Collectors.toList());
+        Map<Long, Long> commentsCountMap = commentRepository.countCommentsByEventIds(eventIds)
+                .stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
+        for (EventShortDto dto : resultDto) {
+            dto.setCommentsCount(commentsCountMap.getOrDefault(dto.getId(), 0L));
+        }
+
+        return resultDto;
     }
 
     @Override
@@ -130,7 +163,10 @@ public class EventServiceImpl implements EventService {
         event = eventRepository.save(event);
 
         log.info("Сохранение данных о событии {}", request.getTitle());
-        return EventMapper.mapToFullEventDto(event);
+        EventFullDto resultDto = EventMapper.mapToFullEventDto(event);
+        resultDto.setCommentsCount(0L);
+
+        return resultDto;
     }
 
     @Override
@@ -138,7 +174,9 @@ public class EventServiceImpl implements EventService {
         Event events = findByIdAndInitiatorId(eventId, userId);
 
         log.info("Событие {} пользователя {} найдено", events.getTitle(), events.getInitiator().getName());
-        return EventMapper.mapToFullEventDto(events);
+        EventFullDto resultDto = EventMapper.mapToFullEventDto(events);
+        resultDto.setCommentsCount(commentRepository.countByEventId(eventId));
+        return resultDto;
     }
 
     @Override
@@ -170,7 +208,9 @@ public class EventServiceImpl implements EventService {
         updatedEvent = eventRepository.save(updatedEvent);
 
         log.info("Пользователь с ID {} обновляет событие {}", userId, updatedEvent.getTitle());
-        return EventMapper.mapToFullEventDto(updatedEvent);
+        EventFullDto resultDto = EventMapper.mapToFullEventDto(updatedEvent);
+        resultDto.setCommentsCount(commentRepository.countByEventId(eventId));
+        return resultDto;
     }
 
     @Override
@@ -290,6 +330,9 @@ public class EventServiceImpl implements EventService {
         event.setViews(views);
 
         EventFullDto result = EventMapper.mapToFullEventDto(eventRepository.save(event));
+
+        result.setCommentsCount(commentRepository.countByEventId(id));
+
         log.info("Завершено получение полного DTO для события ID {}, установлено просмотров: {}", id, views);
         return result;
     }
@@ -327,6 +370,14 @@ public class EventServiceImpl implements EventService {
                 .stream()
                 .collect(Collectors.groupingBy(request -> request.getEvent().getId(), Collectors.counting()));
 
+        List<Object[]> rawCounts = commentRepository.countCommentsByEventIds(eventIds);
+
+        Map<Long, Long> commentsCountMap = rawCounts.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
         for (Event event : events) {
             String eventUri = "/events/" + event.getId();
             event.setViews(viewsMap.getOrDefault(eventUri, 0L));
@@ -336,6 +387,10 @@ public class EventServiceImpl implements EventService {
         }
 
         List<EventShortDto> resultDto = EventMapper.mapToListShortEventDto(events);
+
+        for (EventShortDto dto : resultDto) {
+            dto.setCommentsCount(commentsCountMap.getOrDefault(dto.getId(), 0L));
+        }
 
         if ("VIEWS".equalsIgnoreCase(sort)) {
             resultDto.sort((o1, o2) -> o2.getViews().compareTo(o1.getViews()));

@@ -2,8 +2,7 @@ package ru.practicum.ewm.comment.service;
 
 import ru.practicum.ewm.comment.dto.AdminCommentParams;
 import ru.practicum.ewm.comment.dto.CommentDto;
-import ru.practicum.ewm.comment.dto.NewCommentDto;
-import ru.practicum.ewm.comment.dto.UpdateCommentDto;
+import ru.practicum.ewm.comment.dto.CommentRequestDto;
 
 import java.util.Collection;
 
@@ -12,9 +11,9 @@ public interface CommentService {
 
     Collection<CommentDto> getAllCommentsByAdmin(AdminCommentParams params);
 
-    CommentDto createComment(Long userId, Long eventId, NewCommentDto request);
+    CommentDto createComment(Long userId, CommentRequestDto request);
 
-    CommentDto updateComment(Long userId, Long comId, UpdateCommentDto request);
+    CommentDto updateComment(Long userId, CommentRequestDto request);
 
     void deleteCommentByUser(Long userId, Long comId);
 

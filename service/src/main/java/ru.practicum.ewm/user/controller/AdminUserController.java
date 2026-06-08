@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.user.dto.NewUserRequest;
 import ru.practicum.ewm.user.dto.UserDto;
-import ru.practicum.ewm.user.service.AdminUserService;
+import ru.practicum.ewm.user.service.UserService;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/admin/users")
 public class AdminUserController {
-    private final AdminUserService userService;
+    private final UserService userService;
 
     @GetMapping
     public Collection<UserDto> findAllUsers(@RequestParam(required = false) List<Long> ids,

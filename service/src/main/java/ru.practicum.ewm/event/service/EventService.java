@@ -2,6 +2,7 @@ package ru.practicum.ewm.event.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ru.practicum.ewm.event.dto.*;
+import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
@@ -34,4 +35,6 @@ public interface EventService {
                                                HttpServletRequest request);
 
     EventFullDto findPublicEventById(Long id, HttpServletRequest request);
+
+    Event findEventById(Long eventId);
 }

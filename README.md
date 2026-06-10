@@ -92,7 +92,7 @@ https://github.com/Victoriya17/java-explore-with-me/pull/4
 
 ### Технологический стек
 
-*   Платформа и сборка: Java 21, Maven (Мультимодульный проект: основной сервис `service` и сервис статистики `stats`)
+*   Платформа и сборка: Java 21 (Amazon Corretto), Maven (Мультимодульный проект: основной сервис `service` и сервис статистики `stats`)
 *   Фреймворки и спецификации: Spring Boot 3.3.2, Spring Data JPA, Spring Web, Jakarta Persistence API
 *   База данных: PostgreSQL (с разделением на изолированные БД для основного сервиса и статистики)
 *   Валидация и сериализация: Jakarta Validation API, Jackson
